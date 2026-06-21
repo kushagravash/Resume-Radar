@@ -1,0 +1,92 @@
+# =============================================================================
+# AI Resume Screening System — .gitignore
+# DO NOT remove entries from this file. Every item here has been intentionally
+# excluded to protect secrets, PII, or to avoid bloating the repository.
+# =============================================================================
+
+# ─── Python Virtual Environments ─────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env_local/
+ENV/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+# NEVER commit .env files — they contain JWT secrets, DB URIs, API keys.
+.env
+.env.local
+.env.*.local
+*.secret
+
+# ─── Python Cache & Bytecode ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ─── Databases (LOCAL ONLY — never push SQLite files) ────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+app.db
+test.db
+local.db
+
+# ─── Uploaded Resumes / PII (CRITICAL — sensitive user data) ─────────────────
+uploads/
+temp_uploads/
+resumes/
+*.resume
+
+# ─── Hugging Face / ML Model Cache ───────────────────────────────────────────
+# Models are large (80MB+) and auto-download from Hugging Face on first run.
+.cache/
+models/
+*.onnx
+*.bin
+*.safetensors
+
+# ─── NLTK Downloaded Data ────────────────────────────────────────────────────
+nltk_data/
+
+# ─── Node / Frontend ─────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# ─── Testing & Coverage ──────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ─── Distribution / Packaging ────────────────────────────────────────────────
+*.egg-info/
+dist/
+*.egg
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+
+# ─── IDE & Editor Files ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS Files ────────────────────────────────────────────────────────────────
+.DS_Store
+ehthumbs.db
+Desktop.ini
