@@ -63,6 +63,7 @@ The project requires environment variables for secure authentication keys. You *
 1. Inside the `backend` folder, **copy `.env.example` and rename it to `.env`.**
 2. Run `python -c "import secrets; print(secrets.token_hex(32))"` in your terminal to generate a secure key.
 3. Paste that key into the `JWT_SECRET_KEY` field in your new `.env` file **BEFORE** starting the server.
+4. **Configure SMTP credentials** in the `.env` file for the email OTP verification to work. Set `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USER` and `SMTP_PASSWORD`. *(Note: if using Gmail, you must use an [App Password](https://myaccount.google.com/apppasswords) instead of your regular password).*
 
 ### 4. Run the Backend Server
 ```bash
