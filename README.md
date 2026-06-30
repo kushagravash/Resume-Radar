@@ -23,8 +23,10 @@ Built with a **Next.js** frontend and a **FastAPI** backend, it utilizes Hugging
 
 ### Prerequisites
 * **Node.js** (v18+ recommended)
-* **Python 3.12** (Strictly recommended to avoid C++ build errors with ML dependencies)
 * **Git**
+
+> ⚠️ **CRITICAL REQUIREMENT: PYTHON 3.12 IS STRICTLY REQUIRED.**
+> Do **NOT** use bleeding-edge Python versions (like 3.13 or 3.14). Newer versions will cause the installation to fail with fatal C++ and Rust compiler errors when building ML libraries like `torch` and `pydantic-core` because pre-built wheels are not yet available. Please ensure your virtual environment uses Python 3.11 or 3.12.
 
 ### 1. Clone the Repository
 ```bash
@@ -52,12 +54,15 @@ pip install -r requirements.txt
 ```
 
 ### 3. Environment Variables (.env)
-The project uses environment variables for secure authentication keys.
 
-1. Inside the `backend` folder, duplicate the `.env.example` file and rename it to `.env`.
-2. Generate a secure secret key and paste it into the `JWT_SECRET_KEY` field inside the new `.env` file.
+> 🛑 **CRITICAL STEP: DO NOT SKIP** 
+> If you skip this step, FastAPI will instantly crash on startup with a `ValidationError` for `JWT_SECRET_KEY`.
 
-> **Tip:** You can quickly generate a secure key by running `python -c "import secrets; print(secrets.token_hex(32))"` in your terminal.
+The project requires environment variables for secure authentication keys. You **MUST** set this up BEFORE starting the server.
+
+1. Inside the `backend` folder, **copy `.env.example` and rename it to `.env`.**
+2. Run `python -c "import secrets; print(secrets.token_hex(32))"` in your terminal to generate a secure key.
+3. Paste that key into the `JWT_SECRET_KEY` field in your new `.env` file **BEFORE** starting the server.
 
 ### 4. Run the Backend Server
 ```bash
@@ -82,6 +87,17 @@ npm run dev
 
 ### 6. Test the System
 Open your browser and navigate to [http://localhost:3000](http://localhost:3000). You can now sign up as a recruiter, create a test job posting, and upload resumes to see the AI ranking engine in action!
+
+*(Note: Ensure you enter `http://localhost:3000` into a Web Browser, not your terminal. The backend API runs on `127.0.0.1:8000`, but navigating there in your browser will simply return a "Not Found" message unless you visit the API documentation at `http://127.0.0.1:8000/docs`.)*
+
+---
+
+## 🛠️ Troubleshooting Common Issues
+
+* **`ValidationError for Settings (JWT_SECRET_KEY)`**: You forgot to set up your `.env` file. See Step 3 above.
+* **`ModuleNotFoundError: No module named 'models'`**: Ensure that the `models` package exists inside the `backend` directory (it should contain `__init__.py`, `user.py`, and `job.py`). If it's missing, you may need to recreate the database model files.
+* **`ModuleNotFoundError: No module named 'filetype'`**: The `filetype` package is required for file validation. Ensure you have run `pip install -r requirements.txt` (which has now been updated to include it).
+* **Browser shows `{"detail":"Not Found"}`**: You are trying to visit the backend URL (`http://127.0.0.1:8000`). You need to visit the frontend URL instead: `http://localhost:3000`.
 
 ---
 

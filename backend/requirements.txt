@@ -1,3 +1,5 @@
+# WARNING: Must use Python 3.12 or 3.11.
+# Python 3.13+ (including 3.14) will cause fatal C++ and Rust compiler errors (e.g., pydantic-core, torch) because pre-built wheels are not yet available.
 fastapi==0.111.0
 uvicorn==0.30.1
 python-multipart==0.0.9
@@ -16,3 +18,4 @@ PyPDF2
 python-docx
 pytesseract
 Pillow
+filetype
