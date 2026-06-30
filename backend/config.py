@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     # Base URL used when constructing simulated verification links
     VERIFY_BASE_URL: str = "http://localhost:8000"
 
+    # ── SMTP Configuration ────────────────────────────────────────────────────
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

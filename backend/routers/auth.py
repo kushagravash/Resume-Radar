@@ -8,12 +8,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
 import uuid
+from datetime import datetime, timezone, timedelta
+import random
+import string
 
 from database import get_db
 from models.user import User
-from schemas.auth import UserCreate, UserLogin, Token, UserResponse
+from schemas.auth import UserCreate, UserLogin, VerifyOTP, Token, UserResponse
 from services.auth_service import get_password_hash, verify_password, create_access_token, decode_access_token
-from utils.email_utils import send_verification_email
+from utils.email import send_otp_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -51,34 +54,57 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
         
     hashed_pwd = get_password_hash(user_data.password)
-    verification_token = str(uuid.uuid4())
+    otp_code = ''.join(random.choices(string.digits, k=6))
     
     new_user = User(
         email=user_data.email,
         hashed_password=hashed_pwd,
         name=user_data.name,
         role=user_data.role,
-        verification_token=verification_token
+        otp_code=otp_code,
+        otp_expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
-    # Simulate sending email
-    send_verification_email(new_user.email, verification_token, new_user.name)
+    # Send OTP email
+    email_sent = send_otp_email(new_user.email, otp_code)
+    if not email_sent:
+        # We could rollback the user creation here if we wanted strict consistency
+        raise HTTPException(status_code=500, detail="Account created, but failed to send the OTP email. Please check server logs.")
     
-    return {"message": "User created successfully. Please check your terminal for the verification link."}
+    return {"message": "Verification code sent to your email."}
 
-@router.get("/verify")
-def verify_email(token: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.verification_token == token).first()
+@router.post("/verify-otp", response_model=Token)
+def verify_otp(verify_data: VerifyOTP, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == verify_data.email).first()
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid verification token")
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="User is already verified")
+        
+    if user.otp_code != verify_data.otp_code:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+        
+    now = datetime.now(timezone.utc)
+    expires_at = user.otp_expires_at
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+    if not expires_at or now > expires_at:
+        raise HTTPException(status_code=400, detail="Verification code has expired")
         
     user.is_verified = True
-    user.verification_token = None
+    user.otp_code = None
+    user.otp_expires_at = None
     db.commit()
-    return {"message": "Email verified successfully. You can now log in."}
+    
+    access_token = create_access_token(
+        data={"sub": user.id, "role": user.role}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login", response_model=Token)
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
